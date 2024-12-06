@@ -1,4 +1,4 @@
-"""Advent of Code 2024 Day 5"""
+"""Advent of Code 2024 Day 6"""
 
 def walk(map: list[str], start_X: int, start_y: int):
     """Walk on the map"""

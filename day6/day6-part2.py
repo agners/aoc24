@@ -1,92 +1,121 @@
-"""Advent of Code 2024 Day 5"""
+"""Advent of Code 2024 Day 6"""
 
-def walk(map: list[str], start_X: int, start_y: int):
-    """Walk on the map"""
-    block_count = 0
-    use_block = False
-    use_block_next = False
+from collections.abc import Iterator
+
+def walk_check(map: list[str], x: int, y: int, direction: str) -> bool:
+    """Walk on the map and check if this would lead to a loop"""
     size_x = len(map[0])
     size_y = len(map)
-    x = start_X
-    y = start_y
+    path = set()
+    while True:
+        if direction == "^":
+            if y == 0:
+                return False
+            if map[y-1][x] == "#":
+                # Turn right and keep going
+                direction = ">"
+            else:
+                y -= 1
+                if (x, y, direction) in path:
+                    return True
+                path.add((x, y, direction))
+        elif direction == ">":
+            if x == size_x - 1:
+                return False
+            if map[y][x+1] == "#":
+                # Turn right and keep going
+                direction = "v"
+            else:
+                x += 1
+                if (x, y, direction) in path:
+                    return True
+                path.add((x, y, direction))
+        elif direction == "v":
+            if y == size_y - 1:
+                return False
+            if map[y+1][x] == "#":
+                # Turn right and keep going
+                direction = "<"
+            else:
+                y += 1
+                if (x, y, direction) in path:
+                    return True
+                path.add((x, y, direction))
+        elif direction == "<":
+            if x == 0:
+                return False
+            if map[y][x-1] == "#":
+                # Turn right and keep going
+                direction = "^"
+            else:
+                x -= 1
+                if (x, y, direction) in path:
+                    return True
+                path.add((x, y, direction))
+
+
+
+def walk(map: list[str], x: int, y: int) -> Iterator[tuple[int, int]]:
+    """Walk on the map"""
+    size_x = len(map[0])
+    size_y = len(map)
     while True:
         if map[y][x] == "^":
             if y == 0:
-                map[y][x] = "^"
                 break
             if map[y-1][x] == "#":
                 # Turn right
                 map[y][x] = ">"
-                use_block = False
             else:
-                if use_block_next:
-                    block_count += 1
-                    use_block_next = False
-                    print(f"Block at {x}, {y}")
-                map[y][x] = "^"
                 y -= 1
-                for i in range(x, size_x):
-                    if map[y][i] == ">":
-                        use_block_next = True
+                # What if we add a block here?
+                if map[y][x] == ".":
+                    map[y][x] = "#"
+                    if walk_check(map, x, y + 1, ">"):
+                        yield (y, x)
                 map[y][x] = "^"
         elif map[y][x] == ">":
             if x == size_x - 1:
-                map[y][x] = ">"
                 break
             if map[y][x+1] == "#":
                 # Turn right
                 map[y][x] = "v"
-                use_block = False
             else:
-                if use_block_next:
-                    block_count += 1
-                    use_block_next = False
-                    print(f"Block at {x}, {y}")
-                map[y][x] = ">"
                 x += 1
-                for i in range(y, size_y):
-                    if map[i][x] == "v":
-                        use_block_next = True
+                # What if we add a block here?
+                if map[y][x] == ".":
+                    map[y][x] = "#"
+                    if walk_check(map, x - 1, y, "v"):
+                        yield (y, x)
                 map[y][x] = ">"
         elif map[y][x] == "v":
             if y == size_y - 1:
-                map[y][x] = "v"
                 break
             if map[y+1][x] == "#":
                 # Turn right
                 map[y][x] = "<"
-                use_block = False
             else:
-                if use_block_next:
-                    block_count += 1
-                    use_block_next = False
-                    print(f"Block at {x}, {y}")
-                map[y][x] = "v"
                 y += 1
-                for i in range(0, x + 1):
-                    if map[y][i] == "<":
-                        use_block_next = True
+                # What if we add a block here?
+                if map[y][x] == ".":
+                    map[y][x] = "#"
+                    if walk_check(map, x, y - 1, "<"):
+                        yield (y, x)
                 map[y][x] = "v"
         elif map[y][x] == "<":
             if x == 0:
-                map[y][x] = "<"
                 break
             if map[y][x-1] == "#":
                 # Turn right
                 map[y][x] = "^"
-                use_block = False
             else:
-                if use_block_next:
-                    block_count += 1
-                    use_block_next = False
-                    print(f"Block at {x}, {y}")
-                map[y][x] = "<"
                 x -= 1
-                for i in range(0, y + 1):
-                    if map[i][x] == "^":
-                        use_block_next = True
+                # What if we add a block here?
+                if map[y][x] == ".":
+                    map[y][x] = "#"
+                    if walk_check(map, x + 1, y, "^"):
+                        yield (y, x)
                 map[y][x] = "<"
-    print(f"Block count: {block_count}")    
 
 
 with open("input.txt") as f:
@@ -116,12 +145,18 @@ with open("input.txt") as f:
         map.append([c for c in line])
 
     print(f"Map size: {size_x}x{size_y}")
-    walk(map, start_x, start_y)
-    for line in map:
-        for c in line:
-            if c == "O":
-                count += 1
+    #solution = [(3,6), (6,7), (7,7), (1,8), (3,8), (7,9)]
+    solution = False
     
+    block_list = set()
+    for block in walk(map, start_x, start_y):
+        block_list.add(block)
+        count += 1
+        if solution:
+            if block in solution:
+                solution.remove(block)
+            else:
+                print(f"Block {block} not in solution")
 
-    print(count)
-
+    #print(block_list)
+    print(len(block_list))
