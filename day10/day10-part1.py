@@ -1,10 +1,11 @@
 """Advent of Code 2024 Day 10 part 1"""
 
 import time
+from typing import Generator
 
 start = time.monotonic()
 
-def walk_path(map: list[list[int]], path: list[tuple[int, int]], step: tuple[int, int]) -> tuple[int, int]:
+def walk_path(map: list[list[int]], path: list[tuple[int, int]], step: tuple[int, int]) -> Generator[list[tuple[int, int]], None, None]:
     height = map[step[1]][step[0]]
     if height == 9:
         path.append(step)
