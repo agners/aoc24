@@ -45,7 +45,7 @@ def walk_path(map: list[list[int]], path: list[tuple[int, int]], step: tuple[int
     return
 
 
-with open("input.txt") as f:
+with open("test-data.txt") as f:
 
     lines = f.readlines()
     score = 0
@@ -55,7 +55,6 @@ with open("input.txt") as f:
     for line in lines:
         map.append([int(c) for c in line.strip()])
 
-    print(map)
     for i in range(len(map)):
         for j in range(len(map[i])):
             if map[i][j] == 0:
